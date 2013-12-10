@@ -1,7 +1,7 @@
 Как предложить свой вариант перевода?
 =====================================
 
- 1. Для начала, вам `нужно сделать Fork <http://help.github.com/forking/>`_
+1. Для начала, вам `нужно сделать Fork <http://help.github.com/forking/>`_
    текущего `репозитория с переводом <https://github.com/avalanche123/symfony-docs-ru>`_
 
 2. В своем репозитории перевода `создайте branch <http://www.kernel.org/pub/software/scm/git/docs/git-branch.html>`_
