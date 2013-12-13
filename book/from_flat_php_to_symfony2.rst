@@ -540,58 +540,63 @@ HTTP заголовки и контент страницы посредство�
 И, хотя в этом приложении пока что ответы весьма просты, эта гибкость выплатит вам дивиденды
 по мере роста приложения.
 
-Простое приложение на Symfony2
+Пример приложения на Symfony2
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Блог начал свой *длинный* путь, но он всё ещё содержит слишком много кода для
-такого небольшого приложения. Следуя по пути, мы изобрели простую систему
+Блог *далеко* продвинулся, но он всё ещё содержит слишком много кода для
+такого небольшого приложения. По ходу дела, вы создали простую систему
 маршрутизации и метод, использующий ``ob_start()`` и ``ob_get_clean()`` для
 отображения шаблонов. Если, по каким-либо соображениям, вы хотите продолжить
 создание этого "фреймворка" с нуля, вы можете по крайней мере использовать
-самостоятельные компоненты Symfony - `Routing`_ и `Templating`_, которые решают
-эти проблемы.
+самостоятельные компоненты Symfony - `Routing`_ и `Templating`_, в которых 
+эти вопросы уже решены.
 
 Вместо того чтобы заново решать типовые проблемы, вы можете предоставить
 Symfony2 заботу о них. Вот пример простого приложения, построенного с
 использованием Symfony2:
 
-.. code-block:: html+php
-
-    <?php
-    // src/Acme/BlogBundle/Controller/BlogController.php
-
+// src/Acme/BlogBundle/Controller/BlogController.php
     namespace Acme\BlogBundle\Controller;
+
     use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 
     class BlogController extends Controller
     {
         public function listAction()
         {
-            $posts = $this->get('doctrine')->getEntityManager()
+            $posts = $this->get('doctrine')->getManager()
                 ->createQuery('SELECT p FROM AcmeBlogBundle:Post p')
                 ->execute();
 
-            return $this->render('AcmeBlogBundle:Post:list.html.php', array('posts' => $posts));
+            return $this->render(
+                'AcmeBlogBundle:Blog:list.html.php',
+                array('posts' => $posts)
+            );
         }
 
         public function showAction($id)
         {
             $post = $this->get('doctrine')
-                ->getEntityManager()
+                ->getManager()
                 ->getRepository('AcmeBlogBundle:Post')
-                ->find($id);
+                ->find($id)
+            ;
 
             if (!$post) {
-                // cause the 404 page not found to be displayed
+                // загружает страницу  "404 страница не найдена"
                 throw $this->createNotFoundException();
             }
 
-            return $this->render('AcmeBlogBundle:Post:show.html.php', array('post' => $post));
+            return $this->render(
+                'AcmeBlogBundle:Blog:show.html.php',
+                array('post' => $post)
+            );
         }
     }
 
-Эти два контроллера всё ещё легковесны. Каждый из них использует библиотеку Doctrine
-ORM для получения объектов из базы данных и компонент ``Templating`` для отображения
+Эти два контроллера всё ещё упрощенные. Каждый из них использует библиотеку 
+:doc:`Doctrine ORM library </book/doctrine>` для получения объектов из базы 
+данных и компонент ``Templating`` для отображения
 шаблона и возврата объекта ``Response``. Шаблон list теперь стал ещё немного проще:
 
 .. code-block:: html+php
@@ -605,7 +610,10 @@ ORM для получения объектов из базы данных и к�
     <ul>
         <?php foreach ($posts as $post): ?>
         <li>
-            <a href="<?php echo $view['router']->generate('blog_show', array('id' => $post->getId())) ?>">
+            <a href="<?php echo $view['router']->generate(
+                'blog_show',
+                array('id' => $post->getId())
+            ) ?>">
                 <?php echo $post->getTitle() ?>
             </a>
         </li>
@@ -617,9 +625,13 @@ Layout практически не изменился:
 .. code-block:: html+php
 
     <!-- app/Resources/views/layout.html.php -->
+    <!DOCTYPE html>
     <html>
         <head>
-            <title><?php echo $view['slots']->output('title', 'Default title') ?></title>
+            <title><?php echo $view['slots']->output(
+                'title',
+                'Default title'
+            ) ?></title>
         </head>
         <body>
             <?php echo $view['slots']->output('_content') ?>
@@ -640,11 +652,11 @@ Layout практически не изменился:
 
     # app/config/routing.yml
     blog_list:
-        pattern:  /blog
+        path:     /blog
         defaults: { _controller: AcmeBlogBundle:Blog:list }
 
     blog_show:
-        pattern:  /blog/show/{id}
+        path:     /blog/show/{id}
         defaults: { _controller: AcmeBlogBundle:Blog:show }
 
 Теперь, когда Symfony2 берёт на себя повседневные задачи, фронт-контроллер
@@ -652,9 +664,6 @@ Layout практически не изменился:
 не придется трогать его после создания (а если вы используете дистрибутив Symfony2,
 то вам даже не придётся создавать его!):
 
-.. code-block:: html+php
-
-    <?php
     // web/app.php
     require_once __DIR__.'/../app/bootstrap.php';
     require_once __DIR__.'/../app/AppKernel.php';
