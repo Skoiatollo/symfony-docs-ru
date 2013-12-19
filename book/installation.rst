@@ -348,7 +348,8 @@ Symfony2 поздоровается и поздравит вас с продел
 он сможет запросто выполнить скрипт ``php composer.phar install`` и загрузить
 все необходимые зависимости проекта.
 
-.. _`включить поддержку ACL`: https://help.ubuntu.com/community/FilePermissionsACLs
+
+.. _`enable ACL support`: https://help.ubuntu.com/community/FilePermissionsACLs
 .. _`http://symfony.com/download`: http://symfony.com/download
 .. _`Git`: http://git-scm.com/
 .. _`GitHub Bootcamp`: http://help.github.com/set-up-git-redirect
@@ -357,4 +358,3 @@ Symfony2 поздоровается и поздравит вас с продел
 .. _`Apache`: http://httpd.apache.org/docs/current/mod/core.html#documentroot
 .. _`Nginx`: http://wiki.nginx.org/Symfony
 .. _`Symfony Installation Page`:    http://symfony.com/download
-
