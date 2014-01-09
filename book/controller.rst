@@ -468,8 +468,7 @@ Symfony2 который доступен вам в любом случае - с 
 :method:`Symfony\\Bundle\\FrameworkBundle\\Controller\\Controller::forward`. 
 Вместо того, чтобы выполнить перенаправление браузера пользователя, этот метод выполняет внутренний
 подзапрос и вызывает указанный контроллер. Метод ``forward()`` возвращает
-объект ``Response``, который возвращает контроллер, на который осуществлялась
-переадресация::
+объект ``Response``, полученный от этого контроллера::
 
     public function indexAction($name)
     {
@@ -478,25 +477,22 @@ Symfony2 который доступен вам в любом случае - с 
             'color' => 'green',
         ));
 
-        // ... further modify the response or return it directly
+        // ... внести дальнейшие изменения в ответ или отправить его сейчас
 
         return $response;
     }
 
 Обратите внимание, что метод `forward()` использует для указания контроллера
-тот же формат строки, который используется в конфигурации маршрутов. Таким
-образом, целью переадресации будет ``HelloController`` из пакета ``AcmeHelloBundle``.
+тот же формат строки, который используется в конфигурации маршрутов. В данном случае,
+класс контроллера - это ``HelloController`` из пакета ``AcmeHelloBundle``.
 Массив, передаваемый методу в качестве параметра, будет конвертирован в параметры
 целевого контроллера. Такой же интерфейс используется при встраивании контроллеров
 в шаблоны (см. :ref:`templating-embedding-controller`). Метод целевого контроллера
-должен выглядеть следующим образом:
+должен выглядеть следующим образом::
 
-.. code-block:: php
-
-    <?php
     public function fancyAction($name, $color)
     {
-        // ... create and return a Response object
+        // ... создать и вернуть обьект Response 
     }
 
 И, как и в случае создания контроллера для маршрута, порядок аргументов
@@ -507,19 +503,24 @@ Symfony2 который доступен вам в любом случае - с 
 
 .. tip::
 
-    Как и прочие методы базового контроллера, метод ``forward`` - это просто
+    Как и прочие методы базового ``Controller``, метод ``forward`` - это просто
     ярлык к базовому функционалу Symfony2. Переадресация может быть выполнена
-    напрямую через сервис ``http_kernel``. При переадресации возвращается
-    объект ``Response``:
+    напрямую через дублирование текущего запроса.  Потом этот подзапрос 
+    (:ref:`sub request <http-kernel-sub-requests>`) выполняется  через сервис ``http_kernel``, 
+    и сервис ``HttpKernel`` возвращает  объект ``Response``::
 
-    .. code-block:: php
+        use Symfony\Component\HttpKernel\HttpKernelInterface;
 
-        <?php
+        $path = array(
+            '_controller' => 'AcmeHelloBundle:Hello:fancy',
+            'name'        => $name,
+            'color'       => 'green',
+        );
+        $request = $this->container->get('request');
+        $subRequest = $request->duplicate(array(), null, $path);
+
         $httpKernel = $this->container->get('http_kernel');
-        $response = $httpKernel->forward('AcmeHelloBundle:Hello:fancy', array(
-            'name'  => $name,
-            'color' => 'green',
-        ));
+        $response = $httpKernel->handle($subRequest, HttpKernelInterface::SUB_REQUEST);
 
 .. index::
    single: Контроллер; рендеринг шаблонов
@@ -533,37 +534,58 @@ Symfony2 который доступен вам в любом случае - с 
 будут отображать (рендерить) шаблон, который отвечает за генерацию HTML (или
 данных в другом формате) для контроллера. Метод ``renderView()`` рендерит
 шаблон и возвращает его содержимое. Контент из шаблона может быть использован для
-создания объекта ``Response``:
+создания объекта ``Response``::
 
-.. code-block:: php
+    use Symfony\Component\HttpFoundation\Response;
 
-    <?php
-    $content = $this->renderView('AcmeHelloBundle:Hello:index.html.twig', array('name' => $name));
+    $content = $this->renderView(
+        'AcmeHelloBundle:Hello:index.html.twig',
+        array('name' => $name)
+    );
 
     return new Response($content);
 
-Эти операции могут быть выполнены за один шаг при помощи метода ``render()``,
-который возвращает объект ``Response``, содержащий контент шаблона:
+Эти операции могут быть выполнены и за один шаг при помощи метода ``render()``,
+который возвращает объект ``Response``, содержащий контент шаблона::
 
-.. code-block:: php
-    <?php
-    return $this->render('AcmeHelloBundle:Hello:index.html.twig', array('name' => $name));
+    return $this->render(
+        'AcmeHelloBundle:Hello:index.html.twig',
+        array('name' => $name)
+    );
 
 В обоих случаях, будет отображен шаблон ``Resources/views/Hello/index.html.twig`` из
 пакета ``AcmeHelloBundle``.
 
-Шаблонизатор Symfony более подробно рассматривается в главе о :doc:`Шаблонах </book/templating>`
+Шаблонизатор Symfony подробно рассматривается в главе о :doc:`Шаблонах </book/templating>`
 
 .. tip::
 
+    Вы даже можете избежать вызова метода ``render``, используя аннотацию ``@Template``.
+    Посмотреть детальнее можно в 
+    :doc:`FrameworkExtraBundle documentation </bundles/SensioFrameworkExtraBundle/annotations/view>`.
+    
+.. tip::
+
     Метод ``renderView`` - это по сути ярлык для быстрого использования шаблонизатора.
-    Шаблонизатор также можно использовать напрямую:
+    Шаблонизатор также можно использовать напрямую::
 
-    .. code-block:: php
-
-        <?php
         $templating = $this->get('templating');
-        $content = $templating->render('AcmeHelloBundle:Hello:index.html.twig', array('name' => $name));
+        $content = $templating->render(
+            'AcmeHelloBundle:Hello:index.html.twig',
+            array('name' => $name)
+        );
+
+.. note::
+
+    Также возможно ренедерить шаблоны в более глубоких подкаталогах, хотя здесь нужно
+    стараться избегать типовой ошибки, когда структура каталогов становится слишком разветвленной::
+   
+        $templating->render(
+            'AcmeHelloBundle:Hello/Greetings:index.html.twig',
+            array('name' => $name)
+        );
+        // ренедерится index.html.twig, найденный в Resources/views/Hello/Greetings.
+
 
 .. index::
    single: Контроллер; Доступ к сервисам
@@ -571,7 +593,7 @@ Symfony2 который доступен вам в любом случае - с 
 Доступ к сервисам
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
-При наследовании от базового контроллера, вы можете получить доступ к любому
+При наследовании от базового класса контроллера, вы можете получить доступ к любому
 сервису Symfony2 при помощи метода ``get()``. Ниже представлены основные сервисы, которые
 вам могут быть полезны::
 
@@ -584,7 +606,7 @@ Symfony2 который доступен вам в любом случае - с 
     $mailer = $this->get('mailer');
 
 В Symfony2 по умолчанию определена куча сервисов и вы вольны определить ещё столько
-же собственных. Для того чтобы отобразить список доступных сервисов, используйте
+же собственных. Для того, чтобы отобразить список доступных сервисов, используйте
 консольную команду ``container:debug``:
 
 .. code-block:: bash
@@ -600,36 +622,34 @@ Symfony2 который доступен вам в любом случае - с 
 Разбираемся с ошибками и 404 страница
 -------------------------------------
 
-Когда что-либо не может быть найдено, вы должны вернуть статус-код 404.
-Для того чтобы это сделать, вы можете сгенерировать особый тип исключения.
-Если вы унаследовали контроллер от базового, выполните следующее:
+Когда что-либо не может быть найдено, вам следует удовлеворить HTTP протокол, и вернуть статус-код 404.
+Для того, чтобы это сделать, вы можете сгенерировать особый тип исключения.
+Если вы унаследовали контроллер от базового, выполните следующее::
 
-.. code-block:: php
-
-    <?php
     public function indexAction()
     {
-        $product = // тут получаем объект из базы данных
+        // получить объект из базы даннх
+        $product = ...;
         if (!$product) {
-            throw $this->createNotFoundException('Продукт не существует');
+            throw $this->createNotFoundException('The product does not exist');
         }
 
         return $this->render(...);
     }
 
 Метод ``createNotFoundException()`` создаёт особый объект ``NotFoundHttpException``,
-который в конечном итоге провоцирует возврат HTTP 404 внутри Symfony.
+который в конечном итоге провоцирует внутри Symfony HTTP ответ с  статус-кодом 404.
 
 Конечно, вы вольны вызывать любую исключительную ситуацию в вашем контроллере -
-Symfony2 автоматически вернёт HTTP статус-код 500.
+Symfony2 автоматически вернёт HTTP ответ со статус-кодом 500.
 
 .. code-block:: php
 
     throw new \Exception('Что-то пошло не так!');
 
-В любом случае, пользователь увидит страницу с той или иной ошибкой, а
-разработчику (при использовании dev-окружения) будет показана страница
-с полной отладочной информацией. Эти страницы ошибок могут быть изменены.
+В любом случае, пользователь увидит оформленныую стилями страницу с той или иной ошибкой, а
+разработчику (при просмотре страницы в режиме отладки) будет показана страница
+с полной отладочной информацией по ошибке. Обе эти страницы ошибок могут быть видоизменены.
 Более подробно об этом написано в "книге рецептов": ":doc:`/cookbook/controller/error_pages`".
 
 .. index::
@@ -649,14 +669,14 @@ Symfony2 предоставляет вам объект, для работы с 
 
     $session = $this->getRequest()->getSession();
 
-    // store an attribute for reuse during a later user request
+    // сохраняет атрибут для многократного использования во время следующего запроса пользователя
     $session->set('foo', 'bar');
 
-    // in another controller for another request
+    // в другой контроллер для другого запроса
     $foo = $session->get('foo');
 
-    // set the user locale
-    $session->setLocale('fr');
+    // использует значение по умолчанию, если ключ не существует xist
+    $filters = $session->get('filters', array());
 
 Эти атрибуты будут соответствовать конкретному пользователю, пока существует его
 сессия.
@@ -672,20 +692,21 @@ Flash-сообщения
 вы хотите выполнить перенаправление и отобразить особое сообщение при *следующем*
 запросе. Такие сообщения называются flash-сообщениями.
 
-Например, представьте, что вы обрабатываете отправку формы:
+Например, представьте, что вы обрабатываете отправку формы::
 
-.. code-block:: php
-
-    <?php
     public function updateAction()
     {
         $form = $this->createForm(...);
 
-        $form->bindRequest($this->getRequest());
-        if ($form->isValid()) {
-            // do some sort of processing
+        $form->handleRequest($this->getRequest());
 
-            $this->get('session')->setFlash('notice', 'Your changes were saved!');
+        if ($form->isValid()) {
+            // сделать какую-то обработку 
+
+            $this->get('session')->getFlashBag()->add(
+                'notice',
+                'Ваши изменения сохранены!'
+            );
 
             return $this->redirect($this->generateUrl(...));
         }
@@ -704,22 +725,22 @@ Flash-сообщения
 
     .. code-block:: html+jinja
 
-        {% if app.session.hasFlash('notice') %}
+        {% for flashMessage in app.session.flashbag.get('notice') %}
             <div class="flash-notice">
-                {{ app.session.flash('notice') }}
+                {{ flashMessage }}
             </div>
-        {% endif %}
+        {% endfor %}
 
-    .. code-block:: php
+    .. code-block:: html+php
 
-        <?php if ($view['session']->hasFlash('notice')): ?>
+        <?php foreach ($view['session']->getFlashBag()->get('notice') as $message): ?>
             <div class="flash-notice">
-                <?php echo $view['session']->getFlash('notice') ?>
+                <?php echo "<div class='flash-error'>$message</div>" ?>
             </div>
-        <?php endif; ?>
+        <?php endforeach; ?>
 
 По умолчанию, flash-сообщения должны жить ровно один запрос. Они разработаны именно
-для того, чтобы использоваться во время перенаправлениями так как показано в этом примере.
+для того, чтобы использоваться во время перенаправлениями так, как показано в этом примере.
 
 .. index::
    single: Контроллер; Объект ответа
@@ -733,18 +754,32 @@ PHP-абстракцию HTTP-ответа - текстового сообщен
 контента, который возвращается клиенту::
 
     // создаётся простой объект Response со статус-кодом 200 (по умолчанию)
-    $response = new Response('Hello '.$name, 200);
+    $response = new Response('Hello '.$name, Response::HTTP_OK);
 
     // создаётся JSON-ответ со статус-кодом 2000
     $response = new Response(json_encode(array('name' => $name)));
     $response->headers->set('Content-Type', 'application/json');
 
+.. versionadded:: 2.4
+    В Symfony 2.4. была добавлена поддержка констант статус-кода HTTP.
+
+
 .. tip::
 
-    ``headers`` - это объект :class:`Symfony\\Component\\HttpFoundation\\HeaderBag`,
-    содержащий методы для чтения и изменения заголовков ответа ``Response``.
+    Свойство ``headers`` - это объект :class:`Symfony\\Component\\HttpFoundation\\HeaderBag`,
+    содержащий несколько полезных методов для чтения и изменения заголовков ответа ``Response``.
     Имена заголовков нормализованы, так что ``Content-Type``, ``content-type`` и
     даже ``content_type`` эквивалентны.
+    
+.. tip::
+
+    есть также особые классы для того, чтобы облегчить создание определенных видов ответов:
+
+    - Для JSON есть класс :class:`Symfony\\Component\\HttpFoundation\\JsonResponse`.
+      Смотри :ref:`component-http-foundation-json-response`.
+    - Для фалов есть класс :class:`Symfony\\Component\\HttpFoundation\\BinaryFileResponse`.
+      Смотри :ref:`component-http-foundation-serving-files`.
+    
 
 .. index::
    single: Контроллер; Объект запроса
@@ -757,13 +792,13 @@ PHP-абстракцию HTTP-ответа - текстового сообщен
 
     $request = $this->getRequest();
 
-    $request->isXmlHttpRequest(); // is it an Ajax request?
+    $request->isXmlHttpRequest(); // это запрос Ajax?
 
     $request->getPreferredLanguage(array('en', 'fr'));
 
-    $request->query->get('page'); // get a $_GET parameter
+    $request->query->get('page'); // получить параметр $_GET 
 
-    $request->request->get('page'); // get a $_POST parameter
+    $request->request->get('page'); // получить параметр $_POST 
 
 Подобно объекту ``Response``, заголовки запроса хранятся в объекте ``HeaderBag``
 и также легко доступны.
@@ -776,14 +811,14 @@ PHP-абстракцию HTTP-ответа - текстового сообщен
 и представляет собой PHP-функцию, которая выполняет все необходимые действия
 для того чтобы вернуть объект ``Response``, который будет отправлен пользователю.
 
-Для того, чтобы сделать жизнь легче, вы можете отнаследоваться от класса ``Controller``,
-который содержит методы для типичных задач, решаемых контроллером. Например, так как
-вы должны вернуть HTML код - вы можете использовать метод ``render()`` и
-вернуть контент шаблона.
+Для того, чтобы сделать жизнь легче, вы можете отнаследоваться от базового класса 
+``Controller``, который содержит методы для типичных задач, решаемых контроллером. 
+Например, если вы не хотите вводить HTML код в свой контроллер, то вы можете 
+использовать метод ``render()``, чтобы рендерить контент и вернуть его из шаблона.
 
 В других главах вы узнаете как контроллер может быть использован для сохранения
-и получения объектов из базы данных, обрабатывать отправку форм, работать с кэшем
-и многое другое.
+и получения объектов из базы данных, обработки отправки форм, работы с кэшем
+и многого другое.
 
 Дополнительно в книге рецептов:
 ----------------------------
@@ -796,4 +831,4 @@ PHP-абстракцию HTTP-ответа - текстового сообщен
 
     Translation source: n/a
     Corrected from: 2011-11-28 5cee7a0
-    Corrected from:
+    Corrected from: 
