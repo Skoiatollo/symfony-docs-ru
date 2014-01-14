@@ -39,7 +39,7 @@
 
         # app/config/routing.yml
         blog_show:
-            pattern:   /blog/{slug}
+            path:      /blog/{slug}
             defaults:  { _controller: AcmeBlogBundle:Blog:show }
 
     .. code-block:: xml
@@ -48,16 +48,16 @@
         <?xml version="1.0" encoding="UTF-8" ?>
         <routes xmlns="http://symfony.com/schema/routing"
             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-            xsi:schemaLocation="http://symfony.com/schema/routing http://symfony.com/schema/routing/routing-1.0.xsd">
+            xsi:schemaLocation="http://symfony.com/schema/routing
+                http://symfony.com/schema/routing/routing-1.0.xsd">
 
-            <route id="blog_show" pattern="/blog/{slug}">
+            <route id="blog_show" path="/blog/{slug}">
                 <default key="_controller">AcmeBlogBundle:Blog:show</default>
             </route>
         </routes>
 
     .. code-block:: php
 
-        <?php
         // app/config/routing.php
         use Symfony\Component\Routing\RouteCollection;
         use Symfony\Component\Routing\Route;
@@ -69,29 +69,30 @@
 
         return $collection;
 
-Шаблон, определяемый маршрутом ``blog_show`` работает как выражение ``/blog/*``, где
+.. versionadded:: 2.2
+    Опция ``path`` - новинка Symfony2.2, ``pattern`` использовался в старых версиях.
+    
+Путь (path), определяемый маршрутом ``blog_show`` работает как выражение ``/blog/*``, где
 метасимволом является имя ``slug``. Для URL ``/blog/my-blog-post`` переменная ``slug``
 получает значение ``my-blog-post``, которое будет доступно для использования в
-контроллере.
+контроллере (читайте дальше).
 
 Параметр ``_controller`` - это служебный ключ, который сообщает Symfony, какой
 именно контроллер должен быть выполнен, когда маршрут совпадает с URL. Строка
 ``_controller``, называется :ref:`логическим именем<controller-string-syntax>`.
-Логическое имя указывает на некоторый РHP-класс и его метод:
+Логическое имя указывает на некоторый РHP-класс и его метод::
 
-.. code-block:: php
-
-    <?php
     // src/Acme/BlogBundle/Controller/BlogController.php
-
     namespace Acme\BlogBundle\Controller;
+
     use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 
     class BlogController extends Controller
     {
         public function showAction($slug)
         {
-            $blog = // используйте переменную $slug, для того чтобы получить запись из базы данных
+            // используйте переменную $slug, для того чтобы получить запись из базы данных
+            $blog = ...;
 
             return $this->render('AcmeBlogBundle:Blog:show.html.twig', array(
                 'blog' => $blog,
@@ -149,7 +150,7 @@ URL запроса и контроллером. Далее в этой глав�
 ------------------
 
 Symfony загружает все маршруты, определённые для вашего приложения, из одного
-файла настроек. Как правило, этот файл называется ``app/config/routing.yml``,
+файла настроек маршрутизатора. Как правило, этот файл называется ``app/config/routing.yml``,
 но при желании наименование файла конфигурации можно изменить на другое (в том
 числе на файл формата XML или PHP) в конфигурационном файле приложения:
 
@@ -165,50 +166,61 @@ Symfony загружает все маршруты, определённые д�
     .. code-block:: xml
 
         <!-- app/config/config.xml -->
-        <framework:config ...>
-            <!-- ... -->
-            <framework:router resource="%kernel.root_dir%/config/routing.xml" />
-        </framework:config>
+        <?xml version="1.0" encoding="UTF-8" ?>
+        <container xmlns="http://symfony.com/schema/dic/services"
+            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+            xmlns:framework="http://symfony.com/schema/dic/symfony"
+            xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd
+                                http://symfony.com/schema/dic/symfony http://symfony.com/schema/dic/symfony/symfony-1.0.xsd">
+
+            <framework:config>
+                <!-- ... -->
+                <framework:router resource="%kernel.root_dir%/config/routing.xml" />
+            </framework:config>
+        </container>
 
     .. code-block:: php
 
-        <?php
         // app/config/config.php
         $container->loadFromExtension('framework', array(
             // ...
-            'router'        => array('resource' => '%kernel.root_dir%/config/routing.php'),
+            'router' => array(
+                'resource' => '%kernel.root_dir%/config/routing.php',
+            ),
         ));
 
 .. tip::
 
     Не смотря на то, что все маршруты загружаются из одного файла, обычной
     практикой является подключение дополнительных ресурсов внутри этого
-    файла (см. секцию :ref:`routing-include-external-resources`).
-
+    файла. Чтобы этого добиться, просто укажите в основном файле настроек маршрутизатора,
+    какие внешние файлы нужно включить. См. раздел :ref:`routing-include-external-resources`
+    за дополнительной информацией. 
+    
 Базовая настройка маршрута
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Определить новый маршрут не сложно, типичное приложение будет иметь много различных
-маршрутов. Самый простой маршрут состоит из двух частей: шаблона URL (``pattern``)  и
-массива ``defaults``:
+Определить новый маршрут несложно, и типичное приложение будет иметь много различных
+маршрутов. Самый простой маршрут состоит из двух частей: пути (``path``), которому ищется
+соответствие, и массива ``defaults``:
 
 .. configuration-block::
 
     .. code-block:: yaml
 
         _welcome:
-            pattern:   /
+            path:      /
             defaults:  { _controller: AcmeDemoBundle:Main:homepage }
 
     .. code-block:: xml
 
         <?xml version="1.0" encoding="UTF-8" ?>
-
         <routes xmlns="http://symfony.com/schema/routing"
             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-            xsi:schemaLocation="http://symfony.com/schema/routing http://symfony.com/schema/routing/routing-1.0.xsd">
+            xsi:schemaLocation="http://symfony.com/schema/routing
+                http://symfony.com/schema/routing/routing-1.0.xsd">
 
-            <route id="_welcome" pattern="/">
+            <route id="_welcome" path="/">
                 <default key="_controller">AcmeDemoBundle:Main:homepage</default>
             </route>
 
@@ -216,7 +228,6 @@ Symfony загружает все маршруты, определённые д�
 
     ..  code-block:: php
 
-        <?php
         use Symfony\Component\Routing\RouteCollection;
         use Symfony\Component\Routing\Route;
 
@@ -229,8 +240,8 @@ Symfony загружает все маршруты, определённые д�
 
 Этот маршрут соответствует главной странице (``/``) и ставит ей в соответствие
 контроллер ``AcmeDemoBundle:Main:homepage``. Symfony2 переводит строку
-``_controller`` в имя функции, которую необходимо выполнить. Этот процесс
-будет объясняться в секции :ref:`controller-string-syntax`.
+``_controller`` в реальную РНР функцию, и выполняет ее. Этот процесс
+будет объясняться в разделе :ref:`controller-string-syntax`.
 
 .. index::
    single: Маршрутизация; Заполнители
@@ -247,25 +258,24 @@ Symfony загружает все маршруты, определённые д�
     .. code-block:: yaml
 
         blog_show:
-            pattern:   /blog/{slug}
+            path:      /blog/{slug}
             defaults:  { _controller: AcmeBlogBundle:Blog:show }
 
     .. code-block:: xml
 
         <?xml version="1.0" encoding="UTF-8" ?>
-
         <routes xmlns="http://symfony.com/schema/routing"
             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-            xsi:schemaLocation="http://symfony.com/schema/routing http://symfony.com/schema/routing/routing-1.0.xsd">
+            xsi:schemaLocation="http://symfony.com/schema/routing
+                http://symfony.com/schema/routing/routing-1.0.xsd">
 
-            <route id="blog_show" pattern="/blog/{slug}">
+            <route id="blog_show" path="/blog/{slug}">
                 <default key="_controller">AcmeBlogBundle:Blog:show</default>
             </route>
         </routes>
 
     .. code-block:: php
 
-        <?php
         use Symfony\Component\Routing\RouteCollection;
         use Symfony\Component\Routing\Route;
 
@@ -276,17 +286,17 @@ Symfony загружает все маршруты, определённые д�
 
         return $collection;
 
-Шаблон будет соответствовать любому URL похожему на ``/blog/*``. Что ещё более
+Путь будет соответствовать любому URL, похожему на ``/blog/*``. Что ещё более
 важно - значение, соответствующее заполнителю ``{slug}``, будет доступно в
 вашем контроллере. Другими словами, если дан URL ``/blog/hello-world``,
 переменная ``$slug`` со значением ``hello-world`` будет доступна в контроллере.
 Эту возможность можно использовать, например, для загрузки записи блога,
 соответствующей этой строке.
 
-Тем не менее, этот шаблон *не будет соответствовать* URL ``/blog``. Это
+Тем не менее, путь *не будет* просто соответствовать URL ``/blog``. Это
 вызвано тем фактом, что заполнитель по умолчанию является обязательным
 параметром. Однако, если добавить заполнителю значение по умолчанию в
-массив ``defaults``.
+массив ``defaults``, то это можно изменить.
 
 Обязательные и Опциональные Заполнители
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -299,25 +309,24 @@ Symfony загружает все маршруты, определённые д�
     .. code-block:: yaml
 
         blog:
-            pattern:   /blog
+            path:      /blog
             defaults:  { _controller: AcmeBlogBundle:Blog:index }
 
     .. code-block:: xml
 
         <?xml version="1.0" encoding="UTF-8" ?>
-
         <routes xmlns="http://symfony.com/schema/routing"
             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-            xsi:schemaLocation="http://symfony.com/schema/routing http://symfony.com/schema/routing/routing-1.0.xsd">
+            xsi:schemaLocation="http://symfony.com/schema/routing
+                http://symfony.com/schema/routing/routing-1.0.xsd">
 
-            <route id="blog" pattern="/blog">
+            <route id="blog" path="/blog">
                 <default key="_controller">AcmeBlogBundle:Blog:index</default>
             </route>
         </routes>
 
     .. code-block:: php
 
-        <?php
         use Symfony\Component\Routing\RouteCollection;
         use Symfony\Component\Routing\Route;
 
@@ -330,7 +339,7 @@ Symfony загружает все маршруты, определённые д�
 
 Пока что этот маршрут выглядит проще простого - он не содержит заполнителей
 и соответствует лишь одному URL ``/blog``. Ну а если вам потребуется, чтобы
-данный маршрут поддерживал постраничную навигацию и URL ``/blog/2`` отображал
+данный маршрут поддерживал постраничную навигацию и чтобы URL ``/blog/2`` отображал бы
 вторую страницу с записями блога? Добавим к маршруту заполнитель ``{page}``:
 
 .. configuration-block::
@@ -338,25 +347,24 @@ Symfony загружает все маршруты, определённые д�
     .. code-block:: yaml
 
         blog:
-            pattern:   /blog/{page}
+            path:      /blog/{page}
             defaults:  { _controller: AcmeBlogBundle:Blog:index }
 
     .. code-block:: xml
 
         <?xml version="1.0" encoding="UTF-8" ?>
-
         <routes xmlns="http://symfony.com/schema/routing"
             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-            xsi:schemaLocation="http://symfony.com/schema/routing http://symfony.com/schema/routing/routing-1.0.xsd">
+            xsi:schemaLocation="http://symfony.com/schema/routing
+                http://symfony.com/schema/routing/routing-1.0.xsd">
 
-            <route id="blog" pattern="/blog/{page}">
+            <route id="blog" path="/blog/{page}">
                 <default key="_controller">AcmeBlogBundle:Blog:index</default>
             </route>
         </routes>
 
     .. code-block:: php
 
-        <?php
         use Symfony\Component\Routing\RouteCollection;
         use Symfony\Component\Routing\Route;
 
@@ -367,8 +375,8 @@ Symfony загружает все маршруты, определённые д�
 
         return $collection;
 
-Подобно заполнителю ``{slug}``, значение соответствующее ``{page}`` будет
-доступно внутри контроллера. Это значение может быть использовано для того,
+Подобно заполнителю ``{slug}`` выше по тексту, значение, соответствующее ``{page}`` будет
+доступно внутри контроллера. Его значение может быть использовано для того,
 чтобы определить, какой набор записей блога отобразить для данной страницы.
 
 Но погодите-ка! Так как заполнитель по умолчанию обязателен, маршрут теперь
@@ -382,18 +390,18 @@ Symfony загружает все маршруты, определённые д�
     .. code-block:: yaml
 
         blog:
-            pattern:   /blog/{page}
+            path:      /blog/{page}
             defaults:  { _controller: AcmeBlogBundle:Blog:index, page: 1 }
 
     .. code-block:: xml
 
         <?xml version="1.0" encoding="UTF-8" ?>
-
         <routes xmlns="http://symfony.com/schema/routing"
             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-            xsi:schemaLocation="http://symfony.com/schema/routing http://symfony.com/schema/routing/routing-1.0.xsd">
+            xsi:schemaLocation="http://symfony.com/schema/routing
+                http://symfony.com/schema/routing/routing-1.0.xsd">
 
-            <route id="blog" pattern="/blog/{page}">
+            <route id="blog" path="/blog/{page}">
                 <default key="_controller">AcmeBlogBundle:Blog:index</default>
                 <default key="page">1</default>
             </route>
@@ -401,14 +409,13 @@ Symfony загружает все маршруты, определённые д�
 
     .. code-block:: php
 
-        <?php
         use Symfony\Component\Routing\RouteCollection;
         use Symfony\Component\Routing\Route;
 
         $collection = new RouteCollection();
         $collection->add('blog', new Route('/blog/{page}', array(
             '_controller' => 'AcmeBlogBundle:Blog:index',
-            'page' => 1,
+            'page'        => 1,
         )));
 
         return $collection;
@@ -418,13 +425,21 @@ Symfony загружает все маршруты, определённые д�
 параметра ``page`` будет равно ``1``. URL ``/blog/2`` также будет соответствовать
 этому маршруту, присваивая параметру ``page`` значение ``2``. Отлично.
 
-+---------+------------+
-| /blog   | {page} = 1 |
-+---------+------------+
-| /blog/1 | {page} = 1 |
-+---------+------------+
-| /blog/2 | {page} = 2 |
-+---------+------------+
++--------------------+---------+-----------------------+
+| URL                | маршрут | параметры             |
++====================+=========+=======================+
+| /blog              | blog    | {page} = 1            |
++--------------------+---------+-----------------------+
+| /blog/1            | blog    | {page} = 1            |
++--------------------+---------+-----------------------+
+| /blog/2            | blog    | {page} = 2            |
++--------------------+---------+-----------------------+
+
+.. tip::
+
+    Маршруты с опциональными параметрами на конце не будут соответствовать при запросах 
+    завершающему слэшу (trailing slash); т.е. URL типа ``/blog/`` не будет соответствовать,
+    а URL ``/blog`` - будет. 
 
 .. index::
    single: Маршрутизация; Ограничения
@@ -439,41 +454,40 @@ Symfony загружает все маршруты, определённые д�
     .. code-block:: yaml
 
         blog:
-            pattern:   /blog/{page}
+            path:      /blog/{page}
             defaults:  { _controller: AcmeBlogBundle:Blog:index, page: 1 }
 
         blog_show:
-            pattern:   /blog/{slug}
+            path:      /blog/{slug}
             defaults:  { _controller: AcmeBlogBundle:Blog:show }
 
     .. code-block:: xml
 
         <?xml version="1.0" encoding="UTF-8" ?>
-
         <routes xmlns="http://symfony.com/schema/routing"
             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-            xsi:schemaLocation="http://symfony.com/schema/routing http://symfony.com/schema/routing/routing-1.0.xsd">
+            xsi:schemaLocation="http://symfony.com/schema/routing
+                http://symfony.com/schema/routing/routing-1.0.xsd">
 
-            <route id="blog" pattern="/blog/{page}">
+            <route id="blog" path="/blog/{page}">
                 <default key="_controller">AcmeBlogBundle:Blog:index</default>
                 <default key="page">1</default>
             </route>
 
-            <route id="blog_show" pattern="/blog/{slug}">
+            <route id="blog_show" path="/blog/{slug}">
                 <default key="_controller">AcmeBlogBundle:Blog:show</default>
             </route>
         </routes>
 
     .. code-block:: php
 
-        <?php
         use Symfony\Component\Routing\RouteCollection;
         use Symfony\Component\Routing\Route;
 
         $collection = new RouteCollection();
         $collection->add('blog', new Route('/blog/{page}', array(
             '_controller' => 'AcmeBlogBundle:Blog:index',
-            'page' => 1,
+            'page'        => 1,
         )));
 
         $collection->add('blog_show', new Route('/blog/{show}', array(
@@ -490,25 +504,26 @@ Symfony загружает все маршруты, определённые д�
 (``blog``) и возвращать бессмысленное для параметра ``{page}`` значение
 ``my-blog-post``.
 
-+--------------------+-------+-----------------------+
-| URL                | route | parameters            |
-+====================+=======+=======================+
-| /blog/2            | blog  | {page} = 2            |
-+--------------------+-------+-----------------------+
-| /blog/my-blog-post | blog  | {page} = my-blog-post |
-+--------------------+-------+-----------------------+
++--------------------+---------+-----------------------+
+| URL                | маршрут | параметры             |
++====================+=========+=======================+
+| /blog/2            | blog    | {page} = 2            |
++--------------------+---------+-----------------------+
+| /blog/my-blog-post | blog    | {page} = my-blog-post |
++--------------------+---------+-----------------------+
 
-Решением этой проблемы является добавление *ограничений* в маршрут. Маршруты в этом
-примере будут работать, если шаблон ``/blog/{page}`` будет соответствовать URL
-лишь в том случае, когда ``{page}`` будет целым числом. К счастью, ограничения в виде
-регулярных выражений легко могут быть добавлены к любому параметру. Например:
+Решением этой проблемы является добавление *ограничений* или *условий* в маршрут.
+(см. :ref:`book-routing-conditions`) Маршруты в этом примере будут работать идеально, 
+если путь ``/blog/{page}`` будет соответствовать URL лишь в том случае, когда ``{page}`` 
+будет целым числом. К счастью, ограничения в виде регулярных выражений легко могут быть 
+добавлены к любому параметру. Например:
 
 .. configuration-block::
 
     .. code-block:: yaml
 
         blog:
-            pattern:   /blog/{page}
+            path:      /blog/{page}
             defaults:  { _controller: AcmeBlogBundle:Blog:index, page: 1 }
             requirements:
                 page:  \d+
@@ -516,12 +531,12 @@ Symfony загружает все маршруты, определённые д�
     .. code-block:: xml
 
         <?xml version="1.0" encoding="UTF-8" ?>
-
         <routes xmlns="http://symfony.com/schema/routing"
             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-            xsi:schemaLocation="http://symfony.com/schema/routing http://symfony.com/schema/routing/routing-1.0.xsd">
+            xsi:schemaLocation="http://symfony.com/schema/routing
+                http://symfony.com/schema/routing/routing-1.0.xsd">
 
-            <route id="blog" pattern="/blog/{page}">
+            <route id="blog" path="/blog/{page}">
                 <default key="_controller">AcmeBlogBundle:Blog:index</default>
                 <default key="page">1</default>
                 <requirement key="page">\d+</requirement>
@@ -530,14 +545,13 @@ Symfony загружает все маршруты, определённые д�
 
     .. code-block:: php
 
-        <?php
         use Symfony\Component\Routing\RouteCollection;
         use Symfony\Component\Routing\Route;
 
         $collection = new RouteCollection();
         $collection->add('blog', new Route('/blog/{page}', array(
             '_controller' => 'AcmeBlogBundle:Blog:index',
-            'page' => 1,
+            'page'        => 1,
         ), array(
             'page' => '\d+',
         )));
@@ -550,23 +564,23 @@ Symfony загружает все маршруты, определённые д�
 не будет соответствовать URL вида ``/blog/my-blog-post`` (так как ``my-blog-post``
 *не является числом*).
 
-В результате URL ``/blog/my-blog-post`` будет соответствовать маршруту ``blog_show``.
+В результате URL ``/blog/my-blog-post`` будет теперь соответствовать маршруту ``blog_show``.
 
-+--------------------+-----------+-----------------------+
-| URL                | route     | parameters            |
-+====================+===========+=======================+
-| /blog/2            | blog      | {page} = 2            |
-+--------------------+-----------+-----------------------+
-| /blog/my-blog-post | blog_show | {slug} = my-blog-post |
-+--------------------+-----------+-----------------------+
++--------------------+-------------+-----------------------+
+| URL                | маршрут     | параметры             |
++====================+=============+=======================+
+| /blog/2            | blog        | {page} = 2            |
++--------------------+-------------+-----------------------+
+| /blog/my-blog-post | blog_show   | {slug} = my-blog-post |
++--------------------+-------------+-----------------------+
 
 .. sidebar:: Более ранний маршрут всегда выигрывает
 
-    Что же означает тот факт, что порядок маршрутов очень важен? Если маршрут
+    Иными словами, порядок маршрутов очень важен. Если маршрут
     ``blog_show`` будет расположен выше маршрута ``blog``, то URL ``/blog/2``
     будет соответствовать маршруту ``blog_show`` вместо маршрута ``blog``
-    так как параметр ``{slug}`` не имеет ограничений. Используя правильный порядок
-    и разумные ограничения вы сможете сделать всё что вам угодно.
+    так как параметр ``{slug}`` в ``blog_show``не имеет ограничений. Используя 
+    правильный порядок и разумные ограничения вы сможете сделать всё что вам угодно.
 
 Так как ограничения для параметров - это регулярные выражения, сложность и гибкость
 каждого ограничения лежит на вашей совести. Предположим, что главная страница
@@ -577,7 +591,7 @@ Symfony загружает все маршруты, определённые д�
     .. code-block:: yaml
 
         homepage:
-            pattern:   /{culture}
+            path:      /{culture}
             defaults:  { _controller: AcmeDemoBundle:Main:homepage, culture: en }
             requirements:
                 culture:  en|fr
@@ -585,12 +599,12 @@ Symfony загружает все маршруты, определённые д�
     .. code-block:: xml
 
         <?xml version="1.0" encoding="UTF-8" ?>
-
         <routes xmlns="http://symfony.com/schema/routing"
             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-            xsi:schemaLocation="http://symfony.com/schema/routing http://symfony.com/schema/routing/routing-1.0.xsd">
+            xsi:schemaLocation="http://symfony.com/schema/routing
+                http://symfony.com/schema/routing/routing-1.0.xsd">
 
-            <route id="homepage" pattern="/{culture}">
+            <route id="homepage" path="/{culture}">
                 <default key="_controller">AcmeDemoBundle:Main:homepage</default>
                 <default key="culture">en</default>
                 <requirement key="culture">en|fr</requirement>
@@ -599,14 +613,13 @@ Symfony загружает все маршруты, определённые д�
 
     .. code-block:: php
 
-        <?php
         use Symfony\Component\Routing\RouteCollection;
         use Symfony\Component\Routing\Route;
 
         $collection = new RouteCollection();
         $collection->add('homepage', new Route('/{culture}', array(
             '_controller' => 'AcmeDemoBundle:Main:homepage',
-            'culture' => 'en',
+            'culture'     => 'en',
         ), array(
             'culture' => 'en|fr',
         )));
@@ -643,58 +656,53 @@ Symfony загружает все маршруты, определённые д�
     .. code-block:: yaml
 
         contact:
-            pattern:  /contact
+            path:     /contact
             defaults: { _controller: AcmeDemoBundle:Main:contact }
-            requirements:
-                _method:  GET
+            methods:  [GET]
 
         contact_process:
-            pattern:  /contact
+            path:     /contact
             defaults: { _controller: AcmeDemoBundle:Main:contactProcess }
-            requirements:
-                _method:  POST
+            methods:  [POST]
 
     .. code-block:: xml
 
         <?xml version="1.0" encoding="UTF-8" ?>
-
         <routes xmlns="http://symfony.com/schema/routing"
             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-            xsi:schemaLocation="http://symfony.com/schema/routing http://symfony.com/schema/routing/routing-1.0.xsd">
+            xsi:schemaLocation="http://symfony.com/schema/routing
+                http://symfony.com/schema/routing/routing-1.0.xsd">
 
-            <route id="contact" pattern="/contact">
+            <route id="contact" path="/contact" methods="GET">
                 <default key="_controller">AcmeDemoBundle:Main:contact</default>
-                <requirement key="_method">GET</requirement>
             </route>
 
-            <route id="contact_process" pattern="/contact">
+            <route id="contact_process" path="/contact" methods="POST">
                 <default key="_controller">AcmeDemoBundle:Main:contactProcess</default>
-                <requirement key="_method">POST</requirement>
             </route>
         </routes>
 
     .. code-block:: php
 
-        <?php
         use Symfony\Component\Routing\RouteCollection;
         use Symfony\Component\Routing\Route;
 
         $collection = new RouteCollection();
         $collection->add('contact', new Route('/contact', array(
             '_controller' => 'AcmeDemoBundle:Main:contact',
-        ), array(
-            '_method' => 'GET',
-        )));
+        ), array(), array(), '', array(), array('GET')));
 
         $collection->add('contact_process', new Route('/contact', array(
             '_controller' => 'AcmeDemoBundle:Main:contactProcess',
-        ), array(
-            '_method' => 'POST',
-        )));
+        ), array(), array(), '', array(), array('POST')));
 
         return $collection;
 
-Пренебрегая тем, что оба представленных выше маршрута имеют идентичные шаблоны
+.. versionadded:: 2.2
+   Опция ``methods`` добавлена в версии Symfony2.2. В более старых версиях, 
+   используйте ограничение ``_method``.
+
+Несмотря на то, что оба представленных выше маршрута имеют идентичные пути
 (``/contact``), первый маршрут будет соответствовать только GET-запросам, а второй,
 в свою очередь, будет соответствовать только POST-запросам. Это означает, что
 вы сможете отображать и отправлять форму, используя один и тот же URL и использовать
@@ -702,12 +710,106 @@ Symfony загружает все маршруты, определённые д�
 
 .. note::
 
-    Если ограничения на ``_method`` не указаны, маршрут будет соответствовать *любому*
-    методу.
+    Если ни один ``methods`` ни указан, маршрут будет соответствовать *всем* методам.
 
-Как и любые другие ограничения, ограничения для ``_method`` обрабатываются как
-регулярные выражения. Для того, чтобы соответствовать как ``GET`` *так и* ``POST``
-запросам, вы можете использовать ограничение ``GET|POST``.
+Добавляем ограничения для хоста (Host Requirement)
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. versionadded:: 2.2
+    Поддержка соответствий для хоста была добавлена в версии Symfony 2.2
+
+Вы также можете установить соответствия для HTTP хоста входящего запроса. Смотри
+подробнее :doc:`/components/routing/hostname_pattern` в документации по маршрутизаторам.
+
+.. _book-routing-conditions:
+
+Полностью настраивваемый маршрут с условиями
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. versionadded:: 2.4
+    Условия для маршрута были добавлены в версии Symfony 2.4.
+
+Как вы могли видеть, маршруту можно поставить в соответствие только определенные 
+маршрутные метасимволы (при помощи регулярных выражений), HTTP методы, или имена хоста.
+Но система маршрутизации может быть расширена до практически безграничной гибкости, 
+если использовать условия (``conditions``):
+
+.. configuration-block::
+
+    .. code-block:: yaml
+
+        contact:
+            path:     /contact
+            defaults: { _controller: AcmeDemoBundle:Main:contact }
+            condition: "context.getMethod() in ['GET', 'HEAD'] and request.headers.get('User-Agent') matches '/firefox/i'"
+
+    .. code-block:: xml
+
+        <?xml version="1.0" encoding="UTF-8" ?>
+        <routes xmlns="http://symfony.com/schema/routing"
+            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+            xsi:schemaLocation="http://symfony.com/schema/routing
+                http://symfony.com/schema/routing/routing-1.0.xsd">
+
+            <route id="contact"
+                path="/contact"
+                condition="context.getMethod() in ['GET', 'HEAD'] and request.headers.get('User-Agent') matches '/firefox/i'"
+            >
+                <default key="_controller">AcmeDemoBundle:Main:contact</default>
+            </route>
+        </routes>
+
+    .. code-block:: php
+
+        use Symfony\Component\Routing\RouteCollection;
+        use Symfony\Component\Routing\Route;
+
+        $collection = new RouteCollection();
+        $collection->add('contact', new Route(
+            '/contact', array(
+                '_controller' => 'AcmeDemoBundle:Main:contact',
+            ),
+            array(),
+            array(),
+            '',
+            array(),
+            array(),
+            'context.getMethod() in ["GET", "HEAD"] and request.headers.get("User-Agent") matches "/firefox/i"'
+        ));
+
+        return $collection;
+
+Условие (``condition``) есть выражение, и больше о его синтаксисе можно прочесть здесь: 
+:doc:`/components/expression_language/syntax`. При данных условиях, маршрут  совпадет 
+лишь в том случае, если HTTP методом является GET или HEAD *и* если заголовок ``User-Agent``
+соответствует ``firefox``.
+
+Вы можете осуществлять любую необходимую вам сложную логику в выражении, если максимально 
+выгодно используете две переменные, передаваемые в выражение:
+
+* контекст (``context``): Экземляр  класса :class:`Symfony\\Component\\Routing\\RequestContext`,
+  который содержит самую фундаментальную информацию о совпавшем маршруте;
+* запрос (``request``): Объект Symfony :class:`Symfony\\Component\\HttpFoundation\\Request`
+  (см :ref:`component-http-foundation-request`).
+
+.. caution::
+
+    условия *не принимаются в расчет* при генерировании URL.
+
+.. sidebar:: Выражения компилируются в PHP
+
+    Закулисно, выражения компилируются в чистый PHP. Наш пример создаст следующий РНР в 
+    директории кэша:: 
+
+        if (rtrim($pathinfo, '/contact') === '' && (
+            in_array($context->getMethod(), array(0 => "GET", 1 => "HEAD"))
+            && preg_match("/firefox/i", $request->headers->get("User-Agent"))
+        )) {
+            // ...
+        }
+
+    По этой причине, использование условий (``condition``) не вызовет дополнительных затрат
+    по времени; не больше, чем требуется для выполнения Лежащего в основе РНР.
 
 .. index::
    single: Маршрутизация; Продвинутые примеры использования
@@ -727,7 +829,7 @@ Symfony загружает все маршруты, определённые д�
     .. code-block:: yaml
 
         article_show:
-          pattern:  /articles/{culture}/{year}/{title}.{_format}
+          path:     /articles/{culture}/{year}/{title}.{_format}
           defaults: { _controller: AcmeDemoBundle:Article:show, _format: html }
           requirements:
               culture:  en|fr
@@ -737,45 +839,51 @@ Symfony загружает все маршруты, определённые д�
     .. code-block:: xml
 
         <?xml version="1.0" encoding="UTF-8" ?>
-
         <routes xmlns="http://symfony.com/schema/routing"
             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-            xsi:schemaLocation="http://symfony.com/schema/routing http://symfony.com/schema/routing/routing-1.0.xsd">
+            xsi:schemaLocation="http://symfony.com/schema/routing
+                http://symfony.com/schema/routing/routing-1.0.xsd">
 
-            <route id="article_show" pattern="/articles/{culture}/{year}/{title}.{_format}">
+            <route id="article_show"
+                path="/articles/{culture}/{year}/{title}.{_format}">
+
                 <default key="_controller">AcmeDemoBundle:Article:show</default>
                 <default key="_format">html</default>
                 <requirement key="culture">en|fr</requirement>
                 <requirement key="_format">html|rss</requirement>
                 <requirement key="year">\d+</requirement>
+
             </route>
         </routes>
 
     .. code-block:: php
 
-        <?php
         use Symfony\Component\Routing\RouteCollection;
         use Symfony\Component\Routing\Route;
 
         $collection = new RouteCollection();
-        $collection->add('homepage', new Route('/articles/{culture}/{year}/{title}.{_format}', array(
-            '_controller' => 'AcmeDemoBundle:Article:show',
-            '_format' => 'html',
-        ), array(
-            'culture' => 'en|fr',
-            '_format' => 'html|rss',
-            'year' => '\d+',
-        )));
+        $collection->add(
+            'homepage',
+            new Route('/articles/{culture}/{year}/{title}.{_format}', array(
+                '_controller' => 'AcmeDemoBundle:Article:show',
+                '_format'     => 'html',
+            ), array(
+                'culture' => 'en|fr',
+                '_format' => 'html|rss',
+                'year'    => '\d+',
+            ))
+        );
 
         return $collection;
 
-Как вы можете видеть, этот маршрут сработает лишь в том случае, если ``{culture}``
+Как видете, этот маршрут сработает лишь в том случае, если ``{culture}``
 в URL будет либо ``en`` либо ``fr`` и ``{year}`` будет числом. Этот маршрут также
 показывает, что вы можете использовать помимо слэша (``/``) точку между двумя
 заполнителями. URL, соответствующий этому маршруту может выглядеть следующим образом:
 
- * ``/articles/en/2010/my-post``
- * ``/articles/fr/2010/my-post.rss``
+* ``/articles/en/2010/my-post``
+* ``/articles/fr/2010/my-post.rss``
+* ``/articles/en/2013/my-latest-post.html``
 
 .. _book-routing-format-param:
 
