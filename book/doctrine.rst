@@ -4,18 +4,17 @@
 Базы данных и Doctrine ("Модель")
 =================================
 
-Давайте посмотрим правде в глаза, одни из самых распространённых и сложных
-задач для любого приложения включают хранение и чтение информации из базы
-данных. К счастью, Symfony поставляется совмещённым с `Doctrine`_ - библиотекой,
-главная цель которой дать мощный инструмент, позволяющий делать это просто.
-В этой главе вы постигнете основу философии Doctrine и увидите насколько простой
+Одни из самых распространённых и сложных задач для любого приложения включают хранение 
+и чтение информации из базы данных. К счастью, Symfony поставляется совмещённым с 
+`Doctrine`_ - библиотекой, единственная цель которой дать мощный инструмент, позволяющий 
+делать это просто. В этой главе вы постигнете основу философии Doctrine и увидите, насколько простой
 может быть работа с базой данных.
 
 .. note::
 
     Doctrine полностью отделёна от Symfony и её использование необязательно. Эта
-    глава о Doctrine ORM, цель которой позволить представить объекты в
-    реляционных базах данных (таких как *MySQL*, *PostgreSQL* или *Microsoft SQL*).
+    глава о Doctrine ORM, цель которой -  позволить связывать объекты с
+    реляционными базами данных (таких как *MySQL*, *PostgreSQL* или *Microsoft SQL*).
     Если вы предпочитаете пользоваться необработанными запросами, то это просто
     и раскрыто в статье ":doc:`/cookbook/doctrine/dbal`" среди рецептов.
 
@@ -47,28 +46,68 @@
 
 .. code-block:: yaml
 
-    #app/config/parameters.yml
+    # app/config/parameters.yml
     parameters:
-        database_driver:   pdo_mysql
-        database_host:     localhost
-        database_name:     test_project
-        database_user:     root
-        database_password: password
+        database_driver:    pdo_mysql
+        database_host:      localhost
+        database_name:      test_project
+        database_user:      root
+        database_password:  password
+
+    # ...
 
 .. note::
 
     Указание параметров в ``parameters.yml`` всего лишь соглашение. На них
     ссылается основной файл конфигурации, когда настраивается Doctrine:
 
-    .. code-block:: yaml
+    .. configuration-block::
 
-        doctrine:
-            dbal:
-                driver:   %database_driver%
-                host:     %database_host%
-                dbname:   %database_name%
-                user:     %database_user%
-                password: %database_password%
+        .. code-block:: yaml
+
+            # app/config/config.yml
+            doctrine:
+                dbal:
+                    driver:   "%database_driver%"
+                    host:     "%database_host%"
+                    dbname:   "%database_name%"
+                    user:     "%database_user%"
+                    password: "%database_password%"
+
+        .. code-block:: xml
+
+            <!-- app/config/config.xml -->
+            <?xml version="1.0" encoding="UTF-8" ?>
+            <container xmlns="http://symfony.com/schema/dic/services"
+                xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                xmlns:doctrine="http://symfony.com/schema/dic/doctrine"
+                xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd
+                                    http://symfony.com/schema/dic/doctrine http://symfony.com/schema/dic/doctrine/doctrine-1.0.xsd">
+
+                <doctrine:config>
+                    <doctrine:dbal
+                        driver="%database_driver%"
+                        host="%database_host%"
+                        dbname="%database_name%"
+                        user="%database_user%"
+                        password="%database_password%"
+                    />
+                </doctrine:config>
+
+            </container>
+
+        .. code-block:: php
+
+            // app/config/config.php
+            $configuration->loadFromExtension('doctrine', array(
+                'dbal' => array(
+                    'driver'   => '%database_driver%',
+                    'host'     => '%database_host%',
+                    'dbname'   => '%database_name%',
+                    'user'     => '%database_user%',
+                    'password' => '%database_password%',
+                ),
+            ));
 
     Разделяя информацию о базе данных по отдельным файлам, можно легко хранить
     различные версии этих файлов на каждом сервере. Также легко можно хранить
@@ -81,14 +120,88 @@
 
 .. code-block:: bash
 
-    php app/console doctrine:database:create
+    $ php app/console doctrine:database:create
+
+.. sidebar:: Установка базы данных с данными в кодировке UTF8
+
+    Даже опытные разработчики иногда допускают этй ошибку - при начале проекта 
+    Symfony2 они забывают выставить кодировку по умолчанию и collation для своих баз
+    данных, так что в итоге collation выставляется, как по умолчанию для большинства 
+    баз данных - для латиницы. Возможно, в первый-то раз они об этом и вспоминают, 
+    но к тому времени, когда они запускают во время разработки довольно обычную 
+    команду, они уже успевают об этом забыть: 
+    
+    .. code-block:: bash
+
+        $ php app/console doctrine:database:drop --force
+        $ php app/console doctrine:database:create
+
+    Внутри Doctrine нет способа конфигурировать эти натсройки поу молчанию, так как она старается
+    быть настолько языко-независимой в плане окнфигурации окружения, насколько это вообще возможно.
+    Решением тут может быть конфигурация настроек по умолчанию на уровне сервера. 
+
+    Выставление UTF8 по умолчанию для MySQL занимает всего пару строчек в вашем файле
+    настроек   (обычно он называется ``my.cnf``):
+
+    .. code-block:: ini
+
+        [mysqld]
+        collation-server = utf8_general_ci
+        character-set-server = utf8
+
+.. note::
+
+    Если вы хотите свою базу данных в SQLite, вам понадобится установить путь,
+    к тому месту, где ваша база данных будет храниться:
+
+    .. configuration-block::
+
+        .. code-block:: yaml
+
+            # app/config/config.yml
+            doctrine:
+                dbal:
+                    driver: pdo_sqlite
+                    path: "%kernel.root_dir%/sqlite.db"
+                    charset: UTF8
+
+        .. code-block:: xml
+
+            <!-- app/config/config.xml -->
+            <?xml version="1.0" encoding="UTF-8" ?>
+            <container xmlns="http://symfony.com/schema/dic/services"
+                xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                xmlns:doctrine="http://symfony.com/schema/dic/doctrine"
+                xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd
+                                    http://symfony.com/schema/dic/doctrine http://symfony.com/schema/dic/doctrine/doctrine-1.0.xsd">
+
+                <doctrine:config
+                    driver="pdo_sqlite"
+                    path="%kernel.root_dir%/sqlite.db"
+                    charset="UTF-8"
+                >
+                    <!-- ... -->
+                </doctrine:config>
+
+            </container>
+
+        .. code-block:: php
+
+            // app/config/config.php
+            $container->loadFromExtension('doctrine', array(
+                'dbal' => array(
+                    'driver'  => 'pdo_sqlite',
+                    'path'    => '%kernel.root_dir%/sqlite.db',
+                    'charset' => 'UTF-8',
+                ),
+            ));
 
 Создание сущностного класса
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Предположим, создаётся приложение, в котором необходимо показывать продукты.
-Даже не задумываясь о Doctrine или базах данных, понятно что необходим объект
-``Product`` чтобы представить эти продукты. Создайте его внутри папки ``Entity``
+Даже не задумываясь о Doctrine или базах данных, понятно, что необходим объект
+``Product``, чтобы представить эти продукты. Создайте его внутри папки ``Entity``
 (``Сущность``) в ``AcmeStoreBundle``::
 
     // src/Acme/StoreBundle/Entity/Product.php
@@ -104,18 +217,19 @@
     }
 
 Этот класс - часто называемый "сущность", что значит *базовый класс, содержащий
-данные* - простой и помогает выполнять бизнес требования к необходимым продуктам
+данные* - простой и помогает выполнять бизнес-требования к необходимым продуктам
 в приложении. Он пока не может хранится в базе данных - он всего лишь простой
 PHP класс.
 
 .. tip::
 
-    Однажды, когда вы изучите Doctrine, то сможете поручить ей создать этот
-    класс-сущность:
+    Освоив принципы Doctrine, то сможете поручить ей создать этот
+    класс-сущность вместо вас. Для этого потребуется ответить на
+    интерактивные вопросы, чтобы построить класс-сущность корректно:
 
     .. code-block:: bash
 
-        php app/console doctrine:generate:entity --entity="AcmeStoreBundle:Product" --fields="name:string(255) price:float description:text"
+        $ php app/console doctrine:generate:entity
 
 .. index::
     single: Doctrine; Adding mapping metadata
