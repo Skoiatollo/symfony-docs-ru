@@ -128,31 +128,31 @@
 Создание Таблиц\Схемы Базы Данных 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Now you have a usable ``Product`` class and all you need to persist it. Of
-course, you don't yet have the corresponding ``product`` table in your
-database. Fortunately, Propel can automatically create all the database tables
-needed for every known model in your application.  To do this, run:
+Теперь у вас есть удобный для использования класс ``Product`` и все, что вам нужно - 
+это сохранить его в базу данных. Правда, в вашей базе данных пока отсутствует 
+соответсвующая таблицы  ``product``. Но к счастью, Propel автоматически создает все
+необходимые таблицы для базы анных для каждой известной модели в вашем приложении. 
+Для этого запустите следующее:
 
 .. code-block:: bash
 
     $ php app/console propel:sql:build
     $ php app/console propel:sql:insert --force
 
-Your database now has a fully-functional ``product`` table with columns that
-match the schema you've specified.
+Теперь в вашей базе данных имеется полнофункциональная таблица ``product`` с колонками,
+соответствующими указанной вами схеме. 
 
 .. tip::
 
-    You can run the last three commands combined by using the following
-    command: ``php app/console propel:build --insert-sql``.
+    Можно также скомбинировать последние три команды, используя следующую команду:
+    ``php app/console propel:build --insert-sql``.
 
-Persisting Objects to the Database
+Сохранение объектов в базу данных 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Now that you have a ``Product`` object and corresponding ``product`` table,
-you're ready to persist data to the database.  From inside a controller, this
-is pretty easy. Add the following method to the ``DefaultController`` of the
-bundle::
+Теперь, когда у вас есть объект ``Product`` и соответствующая ему таблица ``product``,
+вы готовы к тому, чтобы сохранять данные в базу данных. Изнутри контроллера это делается
+довольно просто. Добавьте следующий метод к ``DefaultController``  в пакете::
 
     // src/Acme/StoreBundle/Controller/DefaultController.php
 
@@ -172,9 +172,9 @@ bundle::
         return new Response('Created product id '.$product->getId());
     }
 
-In this piece of code, you instantiate and work with the ``$product`` object.
-When you call the ``save()`` method on it, you persist it to the database. No
-need to use other services, the object knows how to persist itself.
+В этом отрывке кода вы создаете экземпляр и работаете с объектом ``$product``.
+Когда вы вызываете метод ``save()``, вы этот объект сохраняете в базу данных. 
+Никаких других сервисов использовать не нужно, объект сам знает, как ему сохраняться.
 
 .. note::
 
