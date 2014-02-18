@@ -248,8 +248,8 @@
 Запрос объектов
 --------------------
 
-Propel предоставляет provides generated ``Query`` classes to run both basic and complex queries
-without any work::
+Propel предоставляет сгенерированные классы ``Query`` для запуска базовых и сложных
+запросов безо всяких усилий::
 
     \Acme\StoreBundle\Model\ProductQuery::create()->findPk($id);
 
@@ -257,21 +257,21 @@ without any work::
         ->filterByName('Foo')
         ->findOne();
 
-Imagine that you want to query for products which cost more than 19.99, ordered
-from cheapest to most expensive. From inside a controller, do the following::
+Представьте себе, что вы хотите запросить продукты, которые стоят больше 19.99, 
+в порядке возрастания цены. Находясь внутри контроллера, сделайте следующее::
 
     $products = \Acme\StoreBundle\Model\ProductQuery::create()
         ->filterByPrice(array('min' => 19.99))
         ->orderByPrice()
         ->find();
 
-In one line, you get your products in a powerful oriented object way. No need
-to waste your time with SQL or whatever, Symfony2 offers fully object oriented
-programming and Propel respects the same philosophy by providing an awesome
-abstraction layer.
+Короче говоря, вы поулчаете свои продукты мощным объектно-ориентированным способом. Нет нужды
+тратить свое время на SQL или ему подобное, так как Symfony2  предоставляет полностью объектно 
+ориентированное программирование, а Propel исповедует ту же философию, предоставляя впечатляющий
+уровень абстракции.
 
-If you want to reuse some queries, you can add your own methods to the
-``ProductQuery`` class::
+Если вы хотите использовать некоторые запросы повторно, можете добавить  ваши собственные методы
+к классу ``ProductQuery``::
 
     // src/Acme/StoreBundle/Model/ProductQuery.php
     class ProductQuery extends BaseProductQuery
@@ -283,21 +283,21 @@ If you want to reuse some queries, you can add your own methods to the
         }
     }
 
-But note that Propel generates a lot of methods for you and a simple
-``findAllOrderedByName()`` can be written without any effort::
+Но учтите, что Propel генерирует множество методов для вас и можно написать, к примеру, 
+простой ``findAllOrderedByName()``, причем без всяких усилий::
 
     \Acme\StoreBundle\Model\ProductQuery::create()
         ->orderByName()
         ->find();
 
-Relationships/Associations
+Отношения/Ассоциации (Relationships/Associations)
 --------------------------
 
-Suppose that the products in your application all belong to exactly one
-"category". In this case, you'll need a ``Category`` object and a way to relate
-a ``Product`` object to a ``Category`` object.
+Допустим, что продукты в вашем приложении все принадлежат к одной категории 
+("category"). В этом случае, вам нужен объект ``Category`` и способ соотнести объект 
+ ``Product`` с объектом ``Category``.
 
-Start by adding the ``category`` definition in your ``schema.xml``:
+Начнем с того, что добавим определение ``category`` в ваш файл ``schema.xml``:
 
 .. code-block:: xml
 
@@ -345,27 +345,26 @@ Start by adding the ``category`` definition in your ``schema.xml``:
        </table>
     </database>
 
-Create the classes:
+Создайте классы:
 
 .. code-block:: bash
 
     $ php app/console propel:model:build
 
-Assuming you have products in your database, you don't want to lose them. Thanks to
-migrations, Propel will be able to update your database without losing existing
-data.
+Предположительно, у вас есть продукты в базе данных, и вы не хотите их потерять. Благодаря 
+миграциям (migrations), Propel сможет обновить вашу базу данных, не теряя существующие данные.
 
 .. code-block:: bash
 
     $ php app/console propel:migration:generate-diff
     $ php app/console propel:migration:migrate
 
-Your database has been updated, you can continue writing your application.
+Ваша база данных была обновлена, и вы можете продолжать писать свое приложение.
 
-Saving Related Objects
+Сохранение взаимосвязанных объектов (Saving Related Objects)
 ~~~~~~~~~~~~~~~~~~~~~~
 
-Now, try the code in action. Imagine you're inside a controller::
+Теперь, давайте попробуем код в действии. Представьте себе, что вы внутри контроллера::
 
     // ...
     use Acme\StoreBundle\Model\Category;
@@ -394,17 +393,16 @@ Now, try the code in action. Imagine you're inside a controller::
         }
     }
 
-Now, a single row is added to both the ``category`` and ``product`` tables. The
-``product.category_id`` column for the new product is set to whatever the id is
-of the new category. Propel manages the persistence of this relationship for
-you.
+Итак, единтсвенная строка была добавлена в таблицы ``category`` и ``product``. Колонка
+``product.category_id`` для нового продукта получила значение для id новой категории. 
+В итоге Propel управляет сохранением этого отношения вместо вас. 
 
-Fetching Related Objects
+Извлечение взаимосвязанных объектов 
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
-When you need to fetch associated objects, your workflow looks just like it did
-before.  First, fetch a ``$product`` object and then access its related
-``Category``::
+Когда вам нужно извлечь из базы данных взаимосвязанные объекты, ваш рабочий процесс выглядит 
+так же, как и раньше. Для начала, излечем объект ``$product`` и потом получим доступ 
+к вазимосвязанным объектом  ``Category``::
 
     // ...
     use Acme\StoreBundle\Model\ProductQuery;
@@ -420,24 +418,23 @@ before.  First, fetch a ``$product`` object and then access its related
         // ...
     }
 
-Note, in the above example, only one query was made.
+Заметьте, что в приведенном выше примере был послан только один запрос.
 
-More information on Associations
+Больше информации об ассоциациях
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-You will find more information on relations by reading the dedicated chapter on
-`Relationships`_.
+Больше информации об отношениях можно найти в специально посвященной им главе  `Relationships`_.
 
-Lifecycle Callbacks
+Обратный вызов жизненного цикла (Lifecycle Callbacks)
 -------------------
 
-Sometimes, you need to perform an action right before or after an object is
-inserted, updated, or deleted.  These types of actions are known as "lifecycle"
-callbacks or "hooks", as they're callback methods that you need to execute
-during different stages of the lifecycle of an object (e.g. the object is
-inserted, updated, deleted, etc).
+Иногда, вам нужно выполнить действие непосредственно до или после того, как 
+объект вставлен, обновлен, или удален. Такой тип действий называется обратным вызовом
+"жизненного цикла" или  привязками "hooks", так как они являются методами обратного вызова 
+(callback methods), которые бывает необходимо выполнить на различных стадиях жизненноо цикла объекта
+(т.е. когда объект втавляется, обновляется, удаляется, и т.д.).
 
-To add a hook, just add a new method to the object class::
+Чтобы добавить привязку, просто добавьте новый метод к классу объекта::
 
     // src/Acme/StoreBundle/Model/Product.php
 
@@ -446,32 +443,31 @@ To add a hook, just add a new method to the object class::
     {
         public function preInsert(\PropelPDO $con = null)
         {
-            // do something before the object is inserted
+            // сделайте что-нибудь до того, как объект будет вставлен
         }
     }
 
-Propel provides the following hooks:
+Propel предоставляет следующие привязки:
 
-* ``preInsert()`` code executed before insertion of a new object
-* ``postInsert()`` code executed after insertion of a new object
-* ``preUpdate()`` code executed before update of an existing object
-* ``postUpdate()`` code executed after update of an existing object
-* ``preSave()`` code executed before saving an object (new or existing)
-* ``postSave()`` code executed after saving an object (new or existing)
-* ``preDelete()`` code executed before deleting an object
-* ``postDelete()`` code executed after deleting an object
+* ``preInsert()`` код выполняется до вставки нового объекта 
+* ``postInsert()`` код выполняется после вставки нового объекта
+* ``preUpdate()`` код выполняется до обновления нового объекта 
+* ``postUpdate()`` код выполняется после обновления вставки нового объекта
+* ``preSave()`` код выполняется до сохранения объекта (нового или существующего)
+* ``postSave()`` код выполняется после сохранения объекта (нового или существующего)
+* ``preDelete()`` код выполняется до удаления объекта
+* ``postDelete()`` код выполняется после сохранения объекта
 
-Behaviors
+Формы поведения (Behaviors)
 ---------
 
-All bundled behaviors in Propel are working with Symfony2. To get more
-information about how to use Propel behaviors, look at the `Behaviors reference
-section`_.
+Все прилагаемые с Propel формы поведения работают с Symfony2. Больше информации о том, как
+использовать формы поведения Propel можно найти в `Behaviors reference section`_.
 
-Commands
+Команды
 --------
 
-You should read the dedicated section for `Propel commands in Symfony2`_.
+Вам следует прочесть посвященный им раздел в `Propel commands in Symfony2`_.
 
 .. _`Working With Symfony2`: http://propelorm.org/Propel/cookbook/symfony2/working-with-symfony2.html#installation
 .. _`PropelBundle configuration section`: http://propelorm.org/Propel/cookbook/symfony2/working-with-symfony2.html#configuration
