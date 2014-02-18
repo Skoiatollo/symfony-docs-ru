@@ -178,15 +178,15 @@
 
 .. note::
 
-    If you're following along with this example, you'll need to create a
-    :doc:`route <routing>` that points to this action to see it in action.
-
-Fetching Objects from the Database
+    Если вы хотите проделать этот пример вместе с нами, вам нужно будет создать 
+    :doc:`route <routing>`, указывающий на это действие.
+    
+Извлечение объектов из базы данных
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Fetching an object back from the database is even easier. For example, suppose
-you've configured a route to display a specific ``Product`` based on its ``id``
-value::
+Извлечь объект из базы данных обратно еще проще. Например, допустим, вы настроили 
+мрашрут для отображения определенного объекта ``Product``, основываясь на 
+значении ``id``::
 
     // ...
     use Acme\StoreBundle\Model\ProductQuery;
@@ -202,14 +202,14 @@ value::
             );
         }
 
-        // ... do something, like pass the $product object into a template
+        // ... сделайте что-нибудь, например, передайте объект $product в какой-нибудь шаблон
     }
 
-Updating an Object
+Обновление объекта
 ~~~~~~~~~~~~~~~~~~
 
-Once you've fetched an object from Propel, updating it is easy. Suppose you
-have a route that maps a product id to an update action in a controller::
+Раз уж вы извлекли объект из Propel, то обновить его сможете легко. Допустим, у вас
+есть маршрут, связывающий  product id с действием по обновлению в контроллере::
 
     // ...
     use Acme\StoreBundle\Model\ProductQuery;
@@ -231,24 +231,24 @@ have a route that maps a product id to an update action in a controller::
         return $this->redirect($this->generateUrl('homepage'));
     }
 
-Updating an object involves just three steps:
+Обновление объекта включает в себя три шага:
 
-#. fetching the object from Propel (line 6 - 13);
-#. modifying the object (line 15);
-#. saving it (line 16).
+#. извлечение объекта из (строки 6 - 13);
+#. изменение объекта (строки 15);
+#. его сохранение (строки 16).
 
-Deleting an Object
+Удаление объекта
 ~~~~~~~~~~~~~~~~~~
 
-Deleting an object is very similar to updating, but requires a call to the
-``delete()`` method on the object::
+Удаление объекта очень похоже на обновление, но требует вызова метода
+``delete()`` для объекта::
 
     $product->delete();
 
-Querying for Objects
+Запрос объектов
 --------------------
 
-Propel provides generated ``Query`` classes to run both basic and complex queries
+Propel предоставляет provides generated ``Query`` classes to run both basic and complex queries
 without any work::
 
     \Acme\StoreBundle\Model\ProductQuery::create()->findPk($id);
