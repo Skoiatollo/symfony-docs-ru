@@ -704,9 +704,8 @@ Client используемый функциональными тестами с
 в ``тестовое`` окружение, вы можете настроить установки вашего приложения специально для
 тестирования.
 
-For example, by default, the Swift Mailer is configured to *not* actually
-deliver emails in the ``test`` environment. You can see this under the ``swiftmailer``
-configuration option:
+Например, по умолчанию Swift Mailer отконфигурирован так, чтобы  *не* отсылать электронные 
+сообщения в ``тестовом`` окружении. Это можно видеть в опции конфигурации  ``swiftmailer``:
 
 .. configuration-block::
 
@@ -741,24 +740,23 @@ configuration option:
             'disable_delivery' => true,
         ));
 
-You can also use a different environment entirely, or override the default
-debug mode (``true``) by passing each as options to the ``createClient()``
-method::
+Вы также можете использовать абсолютно другое окружение, или  переопределить режим
+отладки по умолчанию (``true``) передав каждую (переменную) как опцию методу ``createClient()``::
 
     $client = static::createClient(array(
         'environment' => 'my_test_env',
         'debug'       => false,
     ));
 
-If your application behaves according to some HTTP headers, pass them as the
-second argument of ``createClient()``::
+Если ваше приложение как-то ведет себя в зависимости от каких-нибудь заголовков HTTP, 
+их можно передать как второй аргумент ``createClient()``::
 
     $client = static::createClient(array(), array(
         'HTTP_HOST'       => 'en.example.com',
         'HTTP_USER_AGENT' => 'MySuperBrowser/1.0',
     ));
 
-You can also override HTTP headers on a per request basis::
+Еще можно переопределить заголовки HTTP по запросу::
 
     $client->request('GET', '/', array(), array(), array(
         'HTTP_HOST'       => 'en.example.com',
@@ -767,10 +765,10 @@ You can also override HTTP headers on a per request basis::
 
 .. tip::
 
-    The test client is available as a service in the container in the ``test``
-    environment (or wherever the :ref:`framework.test <reference-framework-test>`
-    option is enabled). This means you can override the service entirely
-    if you need to.
+    Тестовый клиент доступен как сервис в container в ``тестовом`` окружении
+    (или когда опция :ref:`framework.test <reference-framework-test>`
+    включена). Это значит, что вы можете переопределить сервис полностью, 
+    если вам это нужно.
 
 
 .. index::
@@ -808,6 +806,7 @@ PHPUnit конфигурация
 
 .. code-block:: xml
 
+    <!-- ... -->
     <filter>
         <whitelist>
             <directory>../src</directory>
@@ -823,13 +822,16 @@ PHPUnit конфигурация
 Узнайте больше из Рецептов
 --------------------------
 
+* :doc:`/components/dom_crawler`
+* :doc:`/components/css_selector`
 * :doc:`/cookbook/testing/http_authentication`
 * :doc:`/cookbook/testing/insulating_clients`
 * :doc:`/cookbook/testing/profiling`
+* :doc:`/cookbook/testing/bootstrap`
 
 .. _`DemoControllerTest`: https://github.com/symfony/symfony-standard/blob/master/src/Acme/DemoBundle/Tests/Controller/DemoControllerTest.php
 .. _`$_SERVER`: http://php.net/manual/en/reserved.variables.server.php
-.. _документацию: http://www.phpunit.de/manual/3.5/en/
+.. _`documentation`: http://phpunit.de/manual/current/en/
 
 .. toctree::
     :hidden:
