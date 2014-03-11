@@ -7,12 +7,10 @@
 Валидация - это вполне обычная задача для web-приложения. Данные, вводимые
 в формы должны быть валидированы (проверены). В то же время, данные должны быть
 валидированы до того, как они будут записаны в базу данных или же будут
-переданы далее некоторому web-сервису.
+переданы далее некоему web-сервису.
 
-Symfony2 содержит компонент `Validator`_ для того, чтобы упростить эту задачу.
-Этот компонент основан на документе `JSR303 Bean Validation specification`_. Что?!
-Java спецификация в PHP? Однако же вы всё услышали верно, но всё не так плохо как
-вам могло показаться. Давайте посмотрим, как мы можем использовать это в PHP.
+Symfony2 содержит компонент `Validator`_, который делает эту задачу простой и прозрачной.
+Этот компонент основан на документе `JSR303 Bean Validation specification`_. 
 
 .. index:
    single: Валидация; Основы
@@ -22,11 +20,8 @@ Java спецификация в PHP? Однако же вы всё услыша
 
 Самый лучший способ понять валидацию - это увидеть её в действии. Для начала,
 предположим, что вы создали обычный PHP-объект и вам нужно использовать его
-где-то внутри приложения:
+где-то внутри приложения::
 
-.. code-block:: php
-
-    <?php
     // src/Acme/BlogBundle/Entity/Author.php
     namespace Acme\BlogBundle\Entity;
 
@@ -58,6 +53,8 @@ Java спецификация в PHP? Однако же вы всё услыша
     .. code-block:: php-annotations
 
         // src/Acme/BlogBundle/Entity/Author.php
+
+        // ...
         use Symfony\Component\Validator\Constraints as Assert;
 
         class Author
@@ -85,9 +82,9 @@ Java спецификация в PHP? Однако же вы всё услыша
 
     .. code-block:: php
 
-        <?php
         // src/Acme/BlogBundle/Entity/Author.php
 
+        // ...
         use Symfony\Component\Validator\Mapping\ClassMetadata;
         use Symfony\Component\Validator\Constraints\NotBlank;
 
